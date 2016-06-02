@@ -1,1 +1,1 @@
-# Golang-Digital-Logic-Simulator-
+# Golang-Digital-Logic-Simulator
