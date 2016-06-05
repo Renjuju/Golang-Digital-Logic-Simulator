@@ -1,4 +1,1 @@
-AND
-OR
-NOT
-XOR
+OR(NOT(AND(A, B)), AND(C, D))

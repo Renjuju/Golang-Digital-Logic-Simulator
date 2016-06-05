@@ -6,10 +6,29 @@ import ("fmt"
       )
 
 func main() {
+  x := true
+  y := true
   circuit, err:= readLines("input.txt")
   check(err)
   for i, circuit:= range circuit {
     fmt.Println(i, circuit)
+  }
+}
+
+//logic gates
+func not(x bool) bool{
+  return !x
+}
+
+func and(x, y bool) bool {
+  return x && y
+}
+
+func or(x, y bool) bool {
+  if(x || y) {
+    return true
+  } else {
+    return false
   }
 }
 
