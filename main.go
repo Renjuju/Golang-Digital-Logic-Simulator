@@ -5,7 +5,6 @@ import ("fmt"
         "os"
         "sync"
       )
-var wg sync.WaitGroup
 
 func printer(c1 chan string, c2 chan string) {
   fileName:= <-c1
