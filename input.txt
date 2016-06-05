@@ -1,14 +1,5 @@
-ABC
-AB + BC + AC
-or(AND(a,b))
-OR(NOT(AND(A, B)), AND(C, D))
-OR(NOT(AND(A, B)), AND(C, D))
-OR(NOT(AND(A, B)), AND(C, D))
-OR(NOT(AND(A, B)), AND(C, D))
-OR(NOT(AND(A, B)), AND(C, D))
+AB
+AND A B
 
-AND(A, B)
-
-
-
-(A and B) or (B and C) or (A and C)
+NOT()
+//NOT(AND(A,B))
