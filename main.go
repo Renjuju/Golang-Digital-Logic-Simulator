@@ -10,6 +10,18 @@ import (
 )
 
 var wg sync.WaitGroup
+var x int
+
+func main() {
+	c1, c2, c3, c4 := make(chan string), make(chan string), make(chan string), make(chan []string)
+
+	wg.Add(4)
+	go clock(c3)
+	go reader(c1, c3)
+	go printer(c1, c2, c4)
+	go readGates(c4)
+	wg.Wait()
+}
 
 func convertToBoolean(x int) bool {
 	if x == 1 {
@@ -41,36 +53,39 @@ func readGates(c4 chan []string) {
 	fmt.Println("The number of elements: ", len(elements))
 
 	// uses gates to parse inputs
-	line := strings.Split(circuits[1], " ")
-	for i, element := range line {
-		println(i, element)
-	}
-	// var retVal bool
-	for i := range elements {
-		go func(i int) {
-			gateChannels[i] <- convertToBoolean(elements[i])
-		}(i)
-	}
-	switch line[0] {
-	case "AND":
-		println(and(gateChannels[0], gateChannels[1]))
-	case "OR":
-		println(or(gateChannels[0], gateChannels[1]))
-	case "NOR":
-		println(nor(gateChannels[0], gateChannels[1]))
-	case "NOT":
-		println(not(gateChannels[0]))
-	case "XOR":
-		println(xor(gateChannels[0], gateChannels[1]))
-	case "NAND":
-		println(nand(gateChannels[0], gateChannels[1]))
+	for n := 1; x < len(circuits); n++ {
+		line := strings.Split(circuits[n], " ")
+		for i, element := range line {
+			println(i, element)
+		}
+		// var retVal bool
+		for i := range elements {
+			go func(i int) {
+				gateChannels[i] <- convertToBoolean(elements[i])
+			}(i)
+		}
+
+		// todo: better parsing for varying letters
+		switch line[0] {
+		case "AND":
+			println(and(gateChannels[0], gateChannels[1]))
+		case "OR":
+			println(or(gateChannels[0], gateChannels[1]))
+		case "NOR":
+			println(nor(gateChannels[0], gateChannels[1]))
+		case "NOT":
+			println(not(gateChannels[0]))
+		case "XOR":
+			println(xor(gateChannels[0], gateChannels[1]))
+		case "NAND":
+			println(nand(gateChannels[0], gateChannels[1]))
+		}
 	}
 
 	wg.Done()
 }
 
 func clock(c3 chan string) {
-	var x int
 	x = 0
 	println("How much clock pulses per second?")
 	var pulsesPerSecond int
@@ -90,9 +105,6 @@ func printer(c1 chan string, c2 chan string, c4 chan []string) {
 	fileName := <-c1
 	circuit, err := readLines(fileName)
 	check(err)
-	// for i, circuit:= range circuit {
-	//   fmt.Println(i, circuit)
-	// }
 	c4 <- circuit
 	wg.Done()
 }
@@ -109,20 +121,9 @@ func reader(c1 chan string, c3 chan string) {
 	wg.Done()
 }
 
-func main() {
-	c1, c2, c3, c4 := make(chan string), make(chan string), make(chan string), make(chan []string)
-
-	wg.Add(4)
-	go clock(c3)
-	go reader(c1, c3)
-	go printer(c1, c2, c4)
-	go readGates(c4)
-	wg.Wait()
-}
-
 //logic gates
 func not(x chan bool) bool {
-	return !x
+	return !<-x
 }
 
 func and(x, y chan bool) bool {
@@ -144,12 +145,25 @@ func nand(x, y chan bool) bool {
 }
 
 func nor(x, y chan bool) bool {
-	return true
+	if or(x, y) == false {
+		return true
+	}
+	return false
 }
 
-func xor(x, y, chan bool) bool {
-	//return or(and(x, not(y), and(y, not(x))))
-	return or(and(x, not(y), and(y, not(x))))
+func xor(x, y chan bool) bool {
+	if <-x && !<-y || <-y && !<-x {
+		return true
+	}
+	return false
+}
+
+func flipFlop(d, q chan int) {
+	// swapping states when clock is either 0 or 1
+	var store int
+	if x == 1 {
+		q <- store
+	}
 }
 
 func check(e error) {
