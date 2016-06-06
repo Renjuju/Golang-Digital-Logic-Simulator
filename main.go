@@ -21,6 +21,12 @@ func convertToBoolean(x int) bool {
 func readGates(c4 chan []string) {
 	circuits := <-c4
 	println("\nReading gates...")
+
+	var gateChannels [3]chan bool
+	for i := range gateChannels {
+		gateChannels[i] = make(chan bool)
+	}
+
 	statements := strings.Split(circuits[0], "")
 	elements := []int{}
 	var tempVal int
@@ -32,24 +38,32 @@ func readGates(c4 chan []string) {
 		elements = append(elements, tempVal)
 	}
 
+	fmt.Println("The number of elements: ", len(elements))
+
 	// uses gates to parse inputs
 	line := strings.Split(circuits[1], " ")
 	for i, element := range line {
 		println(i, element)
 	}
-
+	// var retVal bool
+	for i := range elements {
+		go func(i int) {
+			gateChannels[i] <- convertToBoolean(elements[i])
+		}(i)
+	}
 	switch line[0] {
 	case "AND":
-		if line[1] == "A" {
-			println("Its A!")
-			println(and(convertToBoolean(1), convertToBoolean(0)))
-		} else if line[1] == "B" {
-			println("It's B!")
-		} else if line[1] == "prev" {
-			println("Previous bool value")
-		}
+		println(and(gateChannels[0], gateChannels[1]))
 	case "OR":
-
+		println(or(gateChannels[0], gateChannels[1]))
+	case "NOR":
+		println(nor(gateChannels[0], gateChannels[1]))
+	case "NOT":
+		println(not(gateChannels[0]))
+	case "XOR":
+		println(xor(gateChannels[0], gateChannels[1]))
+	case "NAND":
+		println(nand(gateChannels[0], gateChannels[1]))
 	}
 
 	wg.Done()
@@ -97,6 +111,7 @@ func reader(c1 chan string, c3 chan string) {
 
 func main() {
 	c1, c2, c3, c4 := make(chan string), make(chan string), make(chan string), make(chan []string)
+
 	wg.Add(4)
 	go clock(c3)
 	go reader(c1, c3)
@@ -106,35 +121,35 @@ func main() {
 }
 
 //logic gates
-func not(x bool) bool {
+func not(x chan bool) bool {
 	return !x
 }
 
-func and(x, y bool) bool {
-	return x && y
+func and(x, y chan bool) bool {
+	return <-x && <-y
 }
 
-func or(x, y bool) bool {
-	if x || y {
+func or(x, y chan bool) bool {
+	if <-x || <-y {
 		return true
 	}
 	return false
 }
 
-func nand(x, y bool) bool {
+func nand(x, y chan bool) bool {
 	if !and(x, y) {
 		return true
 	}
 	return false
 }
 
-func nor(x, y bool) bool {
+func nor(x, y chan bool) bool {
 	return true
 }
 
-func xor() bool {
+func xor(x, y, chan bool) bool {
 	//return or(and(x, not(y), and(y, not(x))))
-	return true
+	return or(and(x, not(y), and(y, not(x))))
 }
 
 func check(e error) {
